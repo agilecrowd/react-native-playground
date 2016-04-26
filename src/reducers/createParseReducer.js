@@ -24,56 +24,22 @@
 
 'use strict';
 
-import React, {View, ScrollView} from 'react-native'
-import {
-  F8Header,
-  F8PageControl,
-  RatingHeader,
-  RatingQuestion,
-  AddToScheduleButton
-} from './components'
+import type { Action } from '../actions/types';
 
-class Playground extends React.Component {
-  constructor() {
-    super();
-    const content = [];
-    const define = (name: string, render: Function) => {
-      content.push(<Example key={name} render={render} />)
+type Convert<T> = (object: Object) => T;
+type Reducer<T> = (state: ?Array<T>, action: any) => Array<T>;
+
+function createParseReducer<T>(
+  type: string,
+  convert: Convert<T>
+): Reducer<T> {
+  return function(state: ?Array<T>, action: Action): Array<T> {
+    if (action.type === type) {
+      // Flow can't guarantee {type, list} is a valid action
+      return (action: any).list.map(convert);
     }
-
-    F8Header.__cards__(define)
-    F8PageControl.__cards__(define)
-    RatingHeader.__cards__(define)
-    RatingQuestion.__cards__(define)
-    AddToScheduleButton.__cards__(define)
-
-    this.state = {content}
-  }
-
-  render() {
-    return (
-      <ScrollView style={{backgroundColor: '#336699', flex: 1,}}>
-        {this.state.content}
-      </ScrollView>
-    );
-  }
+    return state || [];
+  };
 }
 
-class Example extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-  }
-
-  render() {
-    const content = this.props.render(this.state.inner, (inner) => this.setState({inner}));
-    return (
-      <View>
-        {content}
-      </View>
-    );
-
-  }
-}
-
-module.exports = Playground
+module.exports = createParseReducer;
